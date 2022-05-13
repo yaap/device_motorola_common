@@ -5,3 +5,6 @@ allow init vendor_fsg_file:filesystem { getattr mount relabelfrom unmount };
 
 # Product persist mounting
 allow init mnt_product_file:dir mounton;
+
+# KProfiles
+allow init sysfs_kprofiles:file { setattr };

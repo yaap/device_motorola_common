@@ -26,3 +26,5 @@ type cutback_socket, file_type;
 # /sys touchscreen
 type vendor_sysfs_touchpanel, fs_type, sysfs_type;
 
+# Kprofiles
+type sysfs_kprofiles, sysfs_type, fs_type;

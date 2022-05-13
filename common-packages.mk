@@ -68,6 +68,10 @@ PRODUCT_PACKAGES += \
     ims-ext-common \
     ims_ext_common.xml
 
+# KProfiles
+PRODUCT_PACKAGES += \
+    KProfiles
+
 # Media
 PRODUCT_PACKAGES += \
     libavservices_minijail.vendor
