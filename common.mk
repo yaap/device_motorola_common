@@ -53,9 +53,6 @@ MOTOROLA_BUILD_SYMLINKS := $(COMMON_PATH)/motorola_build_symlinks.mk
 # Camera
 TARGET_USES_64BIT_CAMERA ?= true
 
-# Dexpreopt
-PRODUCT_DEXPREOPT_SPEED_APPS += SystemUI
-
 # Dynamic Partitions
 ifeq ($(TARGET_USES_DYNAMIC_PARTITIONS),true)
   PRODUCT_USE_DYNAMIC_PARTITIONS := true
