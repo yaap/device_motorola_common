@@ -1,41 +1,18 @@
-# Chipset-specific file
-import /vendor/etc/init/hw/init.mmi.chipset.rc
-
-# Target-specific file
-import /vendor/etc/init/hw/init.mmi.overlay.rc
+# Charge only mode configuration
+import /vendor/etc/init/hw/init.mmi.charge_only.rc
 
 # USB configuration
 import /vendor/etc/init/hw/init.usb.rc
 
-on early-boot
-    write /sys/module/subsystem_restart/parameters/disable_restart_work 0x0
-
-on init
-    chown system log /proc/driver/mmi_annotate
-    chmod 0640 /proc/driver/mmi_annotate
-
 on early-init
-    # Need to wait for platform path for UTAGs driver to succeed
-    wait /dev/block/platform/soc/${ro.boot.bootdevice}/by-name/hw
-
     # initialize ro.vendor.mot.factory with default value when it is not set
     setprop ro.vendor.mot.factory false
 
-    # If utags driver is DLKM, script will load it,
-    # otherwise it has to be already loaded
-    exec_start vendor.oem-hw-sh
-
-    # Map oem properties, this must follow
-    # execution of vendor.oem-hw-sh to set
-    # required properties.
+    start vendor.oem-hw-sh
+    # Map oem properties.
     setprop ro.carrier ${ro.boot.carrier}
     setprop ro.sf.lcd_density ${ro.boot.lcd_density}
     setprop ro.vendor.fsg-id ${ro.boot.fsg-id}
-    setprop ro.vendor.hw.device ${ro.boot.device}
-    setprop ro.vendor.hw.hwrev ${ro.boot.hwrev}
-    setprop ro.vendor.hw.modelno ${ro.boot.modelno}
-    setprop ro.vendor.hw.revision ${ro.boot.revision}
-    setprop ro.vendor.hw.nav_keys ${ro.boot.nav_keys}
     setprop ro.product.vendor.device ${ro.vendor.product.device}
     setprop ro.product.vendor.name ${ro.vendor.product.name}
     setprop ro.product.vendor.model ${ro.vendor.product.model}
@@ -51,70 +28,11 @@ on early-init
     # Trigger priority stage of MMI init
     trigger mmi-priority
 
-on fs
-    mkdir /mnt/vendor/persist/fps 0770 system system
-
-on fs && property:ro.vendor.hw.modem_version=*
-    # Super modem detection
-    exec_start vendor.oem-super-image-detector-sh
-
-on property:ro.vendor.hw.super_image_failure=yes
-    setprop sys.powerctl reboot,recovery
-
-on post-fs && property:ro.vendor.hw.modem_super_image=yes
-    umount /vendor/firmware_mnt
-    mount ext4 /dev/block/bootdevice/by-name/modem${ro.boot.slot_suffix} /vendor/super_modem ro nosuid nodev context=u:object_r:firmware_file:s0
-    mount ext4 loop@/vendor/super_modem/${ro.vendor.hw.modem_mount_file} /vendor/firmware_mnt ro nosuid nodev context=u:object_r:firmware_file:s0
-
-on post-fs && property:ro.vendor.hw.fsg_super_image=yes
-    umount /vendor/fsg
-    mount ext4 /dev/block/bootdevice/by-name/fsg${ro.boot.slot_suffix} /vendor/super_fsg ro nosuid nodev context=u:object_r:fsg_file:s0
-    mount ext4 loop@/vendor/super_fsg/${ro.vendor.hw.fsg_mount_file} /vendor/fsg ro nosuid nodev context=u:object_r:fsg_file:s0
+    # Ensure charging module load order
+    exec u:r:vendor_modprobe:s0 -- /vendor/bin/modprobe -a -d /vendor/lib/modules qpnp-smbcharger-mmi qpnp_adaptive_charge mmi-smbcharger-iio
 
 on post-fs
-    mkdir /mnt/vendor/persist/camera 0755 oem_5004 oem_5004
-    mkdir /mnt/vendor/persist/camera/dualcal 0775 camera oem_5004
-    mkdir /mnt/vendor/persist/camera/focus 0775 camera oem_5004
-    mkdir /mnt/vendor/persist/camera/ledcal 0775 camera oem_5004
-    mkdir /mnt/vendor/persist/camera/mot_ledcal 0775 camera camera
-    mkdir /mnt/vendor/persist/camera/mot_gyrocal 0775 camera camera
-    mkdir /mnt/vendor/persist/mdm 0770 radio radio
-    mkdir /mnt/vendor/persist/factory 0755 oem_5004 oem_5004
-    mkdir /mnt/vendor/persist/factory/audio 0755 oem_5004 system
-    mkdir /mnt/vendor/persist/factory/wlan 0755 oem_5004 oem_5004
-    mkdir /mnt/vendor/persist/factory/regulatory 0755 oem_5004 system
-    mkdir /mnt/vendor/persist/public 0755 oem_5004 oem_5004
-    mkdir /mnt/vendor/persist/public/att_dm 0775 radio oem_5004
-    mkdir /mnt/vendor/persist/public/hiddenmenu 0775 radio oem_5004
-    mkdir /mnt/vendor/persist/public/hiddenmenu/data 0775 system oem_5004
-    mkdir /persist/public/locale 0700 system system
-    mkdir /persist/public/omadm 0700 radio radio
-    mkdir /persist/public/svcs 0770 system system
-    mkdir /mnt/vendor/persist/wifi 0755 oem_5004 oem_5004
-    mkdir /mnt/vendor/persist/bt 0755 oem_5004 bluetooth
-    mkdir /persist/public/usc_dm 0775 radio radio
-    mkdir /mnt/vendor/persist/rfs/msm/mpss/mot_rfs 0771 oem_2951 system
-    mkdir /mnt/vendor/persist/rfs/mdm/mpss/mot_rfs 0771 oem_2951 system
-
-    # This dir is used to store any OMA(both DM and CP) files in persist partition
-    # Any app with radio UID or oem_5004 GID can read/write/execute files in this dir.
-    mkdir /mnt/vendor/persist/public/oma 0775 radio oem_5004
-
-    chown oem_5004 oem_5004 /mnt/vendor/persist/factory/fti
-    chmod 0664 /mnt/vendor/persist/factory/fti
-    chown oem_5004 oem_5004 /mnt/vendor/persist/factory/byte
-    chmod 0660 /mnt/vendor/persist/factory/byte
-    chmod 0660 /mnt/vendor/persist/wifi/wlan_mac.bin
-    chown oem_5004 oem_5004 /mnt/vendor/persist/bt/bt_bdaddr
-    chmod 0664 /mnt/vendor/persist/bt/bt_bdaddr
-
-    # Set life_calls and life_timer file permissions
-    chown radio oem_5004 /mnt/vendor/persist/public/hiddenmenu/life_calls
-    chmod 0775 /mnt/vendor/persist/public/hiddenmenu/life_calls
-    chown radio oem_5004 /mnt/vendor/persist/public/hiddenmenu/life_timer
-    chmod 0775 /mnt/vendor/persist/public/hiddenmenu/life_timer
-
-    chmod 0711 /mnt/vendor/persist/rfs
+    # Set RFS permissions
     chmod 0711 /mnt/vendor/persist/rfs/msm
     chmod 0711 /mnt/vendor/persist/rfs/msm/mpss
     chmod 0771 /mnt/vendor/persist/rfs/msm/mpss/mot_rfs
@@ -122,47 +40,9 @@ on post-fs
     chmod 0711 /mnt/vendor/persist/rfs/mdm/mpss
     chmod 0771 /mnt/vendor/persist/rfs/mdm/mpss/mot_rfs
 
-    # Set dm-verity property for system partition
-    verity_update_state
-
-    # Set capsensor calibration sysfs for MDMCTBK
-    chown radio radio /sys/class/capsense/calibrate
-    chmod 0660 /sys/class/capsense/calibrate
-
 on post-fs-data
-    # Setup folders for security
-    mkdir /mnt/vendor/persist/security 02770 drmrpc drmrpc
-    mkdir /data/vendor/dbvc 0750 oem_5004 shell
-    chown drmrpc oem_5004 /mnt/vendor/persist/security
-
-    chown oem_5001 oem_5001 /sys/class/power_supply/battery/cycle_count
-    chmod 0664 /sys/class/power_supply/battery/cycle_count
-    chmod 0664 /sys/class/power_supply/battery/charge_control_limit
-
-    chown oem_5001 oem_5001 /sys/class/power_supply/wireless/device/chip_id
-    chown oem_5001 oem_5001 /sys/class/power_supply/wireless/current_now
-    chown oem_5001 oem_5001 /sys/class/power_supply/wireless/voltage_now
-    chown oem_5001 oem_5001 /sys/class/power_supply/wireless/voltage_max
-    chmod 0664 /sys/class/power_supply/wireless/voltage_max
-    chown oem_5001 oem_5001 /sys/kernel/debug/pmic-votable/CHG_DISABLE/force_val
-    chmod 0664 /sys/kernel/debug/pmic-votable/CHG_DISABLE/force_val
-    chown oem_5001 oem_5001 /sys/kernel/debug/pmic-votable/CHG_DISABLE/force_active
-    chmod 0664 /sys/kernel/debug/pmic-votable/CHG_DISABLE/force_active
-    chown oem_5001 oem_5001 /sys/kernel/debug/regulator/smb5-vconn/enable
-    chmod 0664 /sys/kernel/debug/regulator/smb5-vconn/enable
-
-    chown root oem_5020 /sys/class/power_supply/usb/usb_priority
-    chmod 0660 /sys/class/power_supply/usb/usb_priority
-    chown root oem_5020 /sys/module/dwc3_msm/parameters/usb_priority
-    chmod 0660 /sys/module/dwc3_msm/parameters/usb_priority
-    chown root oem_5020 /sys/module/usbnet/parameters/force_on
-    chmod 0666 /sys/module/usbnet/parameters/force_on
-
     # Create directory for cutback
     mkdir /data/vendor/misc/cutback 0770 radio wifi
-
-    #Folder for hardware properties
-    mkdir /data/vendor/hardware_revisions 0755 system system
 
     # Imager tuning data for camera subsystem
     mkdir /data/vendor/misc/imager 0771 camera camera
@@ -174,116 +54,47 @@ on post-fs-data
     mkdir /data/vendor/fpc 0700 system system
     mkdir /data/vendor/.fps 0770 system oem_5015
 
+    # Start fingerprint script
+    start vendor.hal-fps-sh
+
 on boot
-   # restore default console_loglevel to KERN_DEBUG
-   # restore default_message_loglevel to KERN_WARNING
-   write /proc/sys/kernel/printk "7 4 1 7"
+    # Change ownership and permission for vibrator
+    chown system system /sys/class/leds/vibrator/state
+    chmod 0660 /sys/class/leds/vibrator/state
+    chown system system /sys/class/leds/vibrator/activate
+    chmod 0660 /sys/class/leds/vibrator/activate
+    chown system system /sys/class/leds/vibrator/duration
+    chmod 0660 /sys/class/leds/vibrator/duration
+    chown system system /sys/class/leds/vibrator/seq
+    chmod 0660 /sys/class/leds/vibrator/seq
+    chown system system /sys/class/leds/vibrator/extra
+    chmod 0660 /sys/class/leds/vibrator/extra
+    chown root oem_5020 /sys/bus/i2c/devices/2-005a/reduce
 
-   # Change ownership and permission for leds backlight
-   chmod 0664 /sys/class/leds/lcd-backlight/brightness
-   chown system system /sys/class/leds/charging/brightness
-   chmod 0664 /sys/class/leds/charging/brightness
+    # Quiet binder logs
+    write /sys/module/binder/parameters/debug_mask 0x5
 
-   # change permission of red leds
-   chown system system /sys/class/leds/red/brightness
-   chmod 0664 /sys/class/leds/red/brightness
-
-   # Change ownership and permission for vibrator
-   chown system system /sys/class/leds/vibrator/state
-   chmod 0660 /sys/class/leds/vibrator/state
-   chown system system /sys/class/leds/vibrator/activate
-   chmod 0660 /sys/class/leds/vibrator/activate
-   chown system system /sys/class/leds/vibrator/duration
-   chmod 0660 /sys/class/leds/vibrator/duration
-   chown system system /sys/class/leds/vibrator/seq
-   chmod 0660 /sys/class/leds/vibrator/seq
-   chown system system /sys/class/leds/vibrator/extra
-   chmod 0660 /sys/class/leds/vibrator/extra
-   chown root oem_5020 /sys/bus/i2c/devices/2-005a/reduce
-
-   # Change ownership of aov related sysfs entries
-   chown audio audio /sys/kernel/aov/trigger
-   chown audio audio /sys/kernel/aov/register
-   chown audio audio /sys/kernel/aov/event
-
-   # Quiet binder logs
-   write /sys/module/binder/parameters/debug_mask 0x5
-
-   # Change owner ship of l5 laser calibration
-   chown camera oem_5004 /mnt/vendor/persist/camera/focus/offset_cal
-   chmod 0660 /mnt/vendor/persist/camera/focus/offset_cal
-
-   # change ownership of capsensor related sysfs node
-   chown system system /sys/class/capsense/reset
-   chown system system /sys/class/capsense/int_state
-
-service vendor.mmi-block-perm /vendor/bin/init.mmi.block_perm.sh
-    class main
-    user root
-    oneshot
-
-on late-fs-charger
-    class_start early_hal
-    wait_for_prop hwservicemanager.ready true
-    exec_start wait_for_keymaster
-    mount_all /vendor/etc/fstab.qcom --late
-    # Boot time fs tune
-    write /sys/block/dm-9/queue/read_ahead_kb 2048
+    # Change owner ship of l5 laser calibration
+    chown camera oem_5004 /mnt/vendor/persist/camera/focus/offset_cal
+    chmod 0660 /mnt/vendor/persist/camera/focus/offset_cal
 
 # translate MMI property in order to keep the consistent with QCOM
 on property:ro.vendor.hw.dualsim=true
-   setprop persist.radio.multisim.config dsds
+    setprop persist.radio.multisim.config dsds
+    setprop persist.vendor.radio.multisim.config dsds
 
 on property:ro.vendor.hw.dualsim=false
-   setprop persist.radio.multisim.config ""
+    setprop persist.radio.multisim.config ""
+    setprop persist.vendor.radio.multisim.config ""
 
-service vendor.mmi-touch-sh /vendor/bin/init.mmi.touch.sh
-    class core
-    user root
-    oneshot
+# Fallback dualsim property
+on property:ro.boot.dualsim=true
+    setprop persist.radio.multisim.config dsds
+    setprop persist.vendor.radio.multisim.config dsds
 
-service vendor.oem-hw-sh /vendor/bin/init.oem.hw.sh
-    class core
-    user root
-    oneshot
-    disabled
-
-service vendor.oem-super-image-detector-sh /vendor/bin/init.oem.hw.sh -M
-    class core
-    user root
-    oneshot
-    disabled
-
-service vendor.hal-fps-sh /vendor/bin/init.oem.fingerprint2.sh
-    class late_start
-    user root
-    group system
-    oneshot
-    disabled
-
-service vendor.touch-dead-sh /vendor/bin/init.oem.hw.sh -f
-    class main
-    user root
-    oneshot
-    disabled
-
-service vendor.touch-ready-sh /vendor/bin/init.oem.hw.sh -r
-    class main
-    user root
-    oneshot
-    disabled
-
-service vendor.oem-hw-config-sh /vendor/bin/init.oem.hw.sh -p
-    class main
-    user root
-    oneshot
-    disabled
-
-on property:vendor.hw.touch.status="dead"
-    start vendor.touch-dead-sh
-
-on property:vendor.hw.touch.status="ready"
-    start vendor.touch-ready-sh
+on property:ro.boot.dualsim=false
+    setprop persist.radio.multisim.config ""
+    setprop persist.vendor.radio.multisim.config ""
 
 # Override the AOSP sensor HAL service definition
 # from hardware/interfaces/sensors/2.0/multihal
@@ -293,19 +104,24 @@ service vendor.sensors-hal-2-0-multihal /vendor/bin/hw/android.hardware.sensors@
     class hal
     user system
     group system wakelock context_hub input uhid
-    writepid /dev/cpuset/system-background/tasks
+    task_profiles ServiceCapacityLow
     capabilities BLOCK_SUSPEND
     rlimit rtprio 10 10
 
-# IKSWQ-149109: Force shutter tone on Japan softbank carrier
-on property:ro.carrier=softbank
-    setprop audio.camerasound.force true
+service vendor.mmi-touch-sh /vendor/bin/init.mmi.touch.sh
+    class core
+    user root
+    oneshot
 
-on property:ro.vendor.hw.dualsim=true
-   setprop persist.vendor.radio.multisim.config dsds
+service vendor.hal-fps-sh /vendor/bin/init.oem.fingerprint2.sh
+    class late_start
+    user root
+    group system
+    oneshot
+    disabled
 
-on property:ro.vendor.hw.dualsim=false
-   setprop persist.vendor.radio.multisim.config ""
-
-on post-fs-data
-   start vendor.hal-fps-sh
+service vendor.oem-hw-sh /vendor/bin/init.oem.hw.sh
+    class core
+    user root
+    oneshot
+    disabled

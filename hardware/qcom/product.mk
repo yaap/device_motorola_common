@@ -44,6 +44,9 @@ ifneq ($(ROM_INCLUDES_QCOM_COMMON),true)
 endif
 
 # QTI VNDK Framework Detect
+PRODUCT_ODM_PROPERTIES += \
+    ro.vendor.qti.va_odm.support=1
+
 PRODUCT_PACKAGES += \
     libvndfwk_detect_jni.qti \
     libqti_vndfwk_detect \
@@ -52,4 +55,4 @@ PRODUCT_PACKAGES += \
 
 # Telephony: IMS framework
 PRODUCT_COPY_FILES += \
-    $(COMMON_PATH)/rootdir/system/system_ext/etc/permissions/privapp-permissions-ims.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/privapp-permissions-ims.xml
+    $(COMMON_PATH)/hardware/qcom/permissions/privapp-permissions-ims.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/privapp-permissions-ims.xml
