@@ -17,6 +17,7 @@ COMMON_PATH := device/motorola/common
 
 # Fixes
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+BUILD_BROKEN_DUP_RULES := true
 
 # Architecture
 TARGET_ARCH := arm64
