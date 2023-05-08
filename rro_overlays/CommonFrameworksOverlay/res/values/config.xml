@@ -108,7 +108,7 @@
     <integer name="config_screenBrightnessDark">1</integer>
 
     <!-- Is the notification LED intrusive? Used to decide if there should be a disable option -->
-    <bool name="config_intrusiveNotificationLed">true</bool>
+    <bool name="config_intrusiveNotificationLed">false</bool>
 
     <!-- Package name(s) containing location provider support.
          These packages can contain services implementing location providers,
