@@ -22,15 +22,12 @@ BUILD_BROKEN_DUP_RULES := true
 # Architecture
 TARGET_ARCH := arm64
 TARGET_CPU_ABI := arm64-v8a
-TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT := generic
 
 TARGET_2ND_ARCH := arm
 TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := generic
-
-TARGET_SUPPORTS_64_BIT_APPS := true
 
 # AVB
 ifeq ($(TARGET_HAS_VBMETA_SYSTEM),true)
@@ -56,9 +53,6 @@ BOARD_MKBOOTIMG_ARGS += \
 
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME ?= $(PRODUCT_DEVICE)
-
-# Dexpreopt
-WITH_DEXPREOPT := true
 
 # Filesystem
 BOARD_ROOT_EXTRA_SYMLINKS += /mnt/vendor/persist:/persist

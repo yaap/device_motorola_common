@@ -58,6 +58,10 @@ endif
 PRODUCT_PACKAGES += \
     libprotobuf-cpp-full-vendorcompat
 
+# HIDL
+PRODUCT_PACKAGES += \
+    android.hidl.base@1.0.vendor
+
 # IMS (OSS)
 PRODUCT_PACKAGES += \
     telephony-ext \
@@ -104,12 +108,6 @@ PRODUCT_PACKAGES += \
     $(DEVICE)FrameworksOverlay \
     $(DEVICE)SettingsOverlay \
     $(DEVICE)SystemUIOverlay
-
-# Power
-ifeq ($(BOARD_USES_PIXEL_POWER_HAL),true)
-  PRODUCT_PACKAGES += \
-      libperfmgr.vendor
-endif
 
 # QCOM Data
 PRODUCT_PACKAGES += \

@@ -16,13 +16,11 @@
 COMMON_PATH := device/motorola/common
 
 # A/B OTA dexopt update_engine hookup
-ifeq ($(AB_OTA_UPDATER),true)
-  AB_OTA_POSTINSTALL_CONFIG += \
-      RUN_POSTINSTALL_system=true \
-      POSTINSTALL_PATH_system=system/bin/otapreopt_script \
-      FILESYSTEM_TYPE_system=ext4 \
-      POSTINSTALL_OPTIONAL_system=true
-endif
+AB_OTA_POSTINSTALL_CONFIG += \
+    RUN_POSTINSTALL_system=true \
+    POSTINSTALL_PATH_system=system/bin/otapreopt_script \
+    FILESYSTEM_TYPE_system=ext4 \
+    POSTINSTALL_OPTIONAL_system=true
 
 # Arch
 TARGET_ARCH := arm64
@@ -35,7 +33,7 @@ PRODUCT_COPY_FILES += \
     frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/usb_audio_policy_configuration.xml
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(COMMON_PATH)/bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := build/make/target/board/mainline_arm64/bluetooth
 
 # Build scripts
 MOTOROLA_CLEAR_VARS := $(COMMON_PATH)/motorola_clear_vars.mk
