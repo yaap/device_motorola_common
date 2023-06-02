@@ -76,7 +76,7 @@ endif
 
 # Rootdir
 $(call copy-files-recursive,$(COMMON_PATH)/rootdir/vendor,$(TARGET_COPY_OUT_VENDOR))
-$(call copy-files-recursive,$(DEVICE_PATH)/vendor,$(TARGET_COPY_OUT_VENDOR))
+$(call copy-files-recursive,$(DEVICE_PATH)/rootdir/vendor,$(TARGET_COPY_OUT_VENDOR))
 $(call copy-files-recursive,$(PLATFORM_COMMON_PATH)/rootdir/vendor,$(TARGET_COPY_OUT_VENDOR))
 
 # Soong
