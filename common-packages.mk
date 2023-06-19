@@ -101,6 +101,12 @@ PRODUCT_PACKAGES += \
     CommonFrameworksOverlay \
     CommonSettingsOverlay
 
+## HFR
+ifeq ($(call device-has-characteristic, hfr),true)
+  PRODUCT_PACKAGES += \
+      CommonHFRSettingsOverlay
+endif
+
 ## Platform Overlays
 PRODUCT_PACKAGES += \
     PlatformFrameworksOverlay \
