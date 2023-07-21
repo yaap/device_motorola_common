@@ -16,7 +16,7 @@
 COMMON_PATH := device/motorola/common
 
 # A/B OTA dexopt update_engine hookup
-AB_OTA_POSTINSTALL_CONFIG += \
+AB_OTA_POSTINSTALL_CONFIG ?= \
     RUN_POSTINSTALL_system=true \
     POSTINSTALL_PATH_system=system/bin/otapreopt_script \
     FILESYSTEM_TYPE_system=ext4 \
@@ -85,7 +85,7 @@ PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_video.xml
 
 # NFC
-ifneq (,$(filter $(TARGET_USES_SN1XX_NFC) $(TARGET_USES_PN5XX_PN8X_NFC) $(TARGET_USES_ST_NFC), true))
+ifneq (,$(filter $(TARGET_USES_SN1XX_NFC) $(TARGET_USES_PN5XX_PN8X_NFC) $(TARGET_USES_ST_NFC) $(TARGET_USES_SEC_NFC), true))
   TARGET_SUPPORTS_NFC := true
 endif
 
@@ -110,7 +110,8 @@ PRODUCT_SOONG_NAMESPACES += \
     vendor/qcom/opensource/data-ipa-cfg-mgr-legacy-um \
     vendor/qcom/opensource/dataservices \
     vendor/qcom/opensource/display/$(qcom_platform) \
-    vendor/qcom/opensource/display-commonsys-intf
+    vendor/qcom/opensource/display-commonsys-intf \
+    vendor/qcom/opensource/gps-legacy
 
 ## Enable pixel soong namespace for Pixel USB and Power HAL
 PRODUCT_SOONG_NAMESPACES += \
